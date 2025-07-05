@@ -5,7 +5,7 @@ class MainScene extends Phaser.Scene {
 
 	preload() {
 		// Images
-		this.load.image("background", "/asset/BG full.png");
+		this.load.image("background", "/asset/BGfull.png");
 		this.load.image("cloud", "/asset/Cloud1.png");
 		this.load.image("player", "/asset/Psyger-0.png");
 		this.load.image("sun", "/asset/Suhn.png");
