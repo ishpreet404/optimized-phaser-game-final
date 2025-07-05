@@ -2,22 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phaser 3 Game Template</title>
+  <title>Psyger-0: Sky Descent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       overflow: hidden;
+      background: #000;
     }
     canvas {
       display: block;
-      margin: auto;
+      width: 100vw;
+      height: 100vh;
     }
   </style>
 </head>
 <body>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@v3.90.0/dist/phaser.js"></script>
-  <script src="main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.js"></script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
