@@ -148,7 +148,7 @@ class MainScene extends Phaser.Scene {
 			this.shieldHitsRemaining = 3;
 			this.updateBars();
 		});
-		
+
 		// Track key collection and stop fireballs
 		this.hasKey = false;
 		this.physics.add.overlap(this.player, this.keys, (player, key) => {
@@ -263,7 +263,7 @@ class MainScene extends Phaser.Scene {
 			.setScrollFactor(0)
 			.setScale(0.6)
 			.setVisible(false);
-		
+
 		// Create level complete screen as text
 		this.levelCompleteScreen = this.add
 			.text(960, 540, "LEVEL COMPLETED!\n\nPress any key or tap to continue", {
@@ -271,13 +271,13 @@ class MainScene extends Phaser.Scene {
 				fill: "#00ff00",
 				backgroundColor: "#000000cc",
 				padding: { x: 40, y: 40 },
-				align: "center"
+				align: "center",
 			})
 			.setOrigin(0.5)
 			.setDepth(10000)
 			.setScrollFactor(0)
 			.setVisible(false);
-			
+
 		this.healthImage = this.add
 			.image(650, 250, "health3")
 			.setScrollFactor(0)
@@ -470,11 +470,11 @@ class MainScene extends Phaser.Scene {
 		this.levelCompleteScreen.setVisible(true);
 
 		// Debug: log to confirm function is called
-		console.log('Level complete screen should be visible');
+		console.log("Level complete screen should be visible");
 
 		// Restart on any key or pointer down
-		this.input.keyboard.once('keydown', () => this.scene.restart());
-		this.input.once('pointerdown', () => this.scene.restart());
+		this.input.keyboard.once("keydown", () => this.scene.restart());
+		this.input.once("pointerdown", () => this.scene.restart());
 	}
 
 	handlePlayerHit() {
@@ -499,10 +499,10 @@ class MainScene extends Phaser.Scene {
 		this.shieldOverlay.setVisible(false);
 		this.sfx.death.play();
 		this.gameOverScreen.setVisible(true);
-		
+
 		// Restart on any key or pointer down
-		this.input.keyboard.once('keydown', () => this.scene.restart());
-		this.input.once('pointerdown', () => this.scene.restart());
+		this.input.keyboard.once("keydown", () => this.scene.restart());
+		this.input.once("pointerdown", () => this.scene.restart());
 	}
 }
 
