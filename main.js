@@ -148,9 +148,15 @@ class MainScene extends Phaser.Scene {
 			this.shieldHitsRemaining = 3;
 			this.updateBars();
 		});
-		this.physics.add.overlap(this.player, this.keys, (player, key) =>
-			key.destroy()
-		);
+		
+		// Track key collection and stop fireballs
+		this.hasKey = false;
+		this.physics.add.overlap(this.player, this.keys, (player, key) => {
+			key.destroy();
+			this.hasKey = true;
+			this.sfx.coin.play(); // Play sound when key is collected
+			console.log("Key collected! Fireballs stopped.");
+		});
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 		this.wasd = this.input.keyboard.addKeys({
@@ -175,7 +181,7 @@ class MainScene extends Phaser.Scene {
 		this.time.addEvent({
 			delay: 2000,
 			callback: () => {
-				if (this.gameOver) return;
+				if (this.gameOver || this.hasKey || this.levelComplete) return; // Stop fireballs if key collected or level complete
 				const originX =
 					this.cameras.main.scrollX + this.cameras.main.width - 80;
 				const originY = this.cameras.main.scrollY + 80;
@@ -227,10 +233,11 @@ class MainScene extends Phaser.Scene {
 			.refreshBody();
 		this.levelComplete = false;
 		this.physics.add.overlap(this.player, this.gate, () => {
-			if (!this.levelComplete) {
+			if (!this.levelComplete && this.hasKey) {
 				this.levelComplete = true;
 				this.sfx.level.play();
 				this.gate.setTexture("gateOpen");
+				this.showLevelCompleteScreen();
 			}
 		});
 
@@ -256,6 +263,21 @@ class MainScene extends Phaser.Scene {
 			.setScrollFactor(0)
 			.setScale(0.6)
 			.setVisible(false);
+		
+		// Create level complete screen as text
+		this.levelCompleteScreen = this.add
+			.text(960, 540, "LEVEL COMPLETED!\n\nPress any key or tap to continue", {
+				fontSize: "48px",
+				fill: "#00ff00",
+				backgroundColor: "#000000cc",
+				padding: { x: 40, y: 40 },
+				align: "center"
+			})
+			.setOrigin(0.5)
+			.setDepth(10000)
+			.setScrollFactor(0)
+			.setVisible(false);
+			
 		this.healthImage = this.add
 			.image(650, 250, "health3")
 			.setScrollFactor(0)
@@ -390,7 +412,7 @@ class MainScene extends Phaser.Scene {
 	}
 
 	update() {
-		if (this.gameOver) return;
+		if (this.gameOver || this.levelComplete) return; // Stop all updates if game over or level complete
 
 		if (this.player.y > this.fallLimitY) {
 			this.lives = 0;
@@ -442,6 +464,19 @@ class MainScene extends Phaser.Scene {
 		this.sun.y = cam.scrollY + 150;
 	}
 
+	showLevelCompleteScreen() {
+		this.physics.pause();
+		this.player.setVelocity(0, 0);
+		this.levelCompleteScreen.setVisible(true);
+
+		// Debug: log to confirm function is called
+		console.log('Level complete screen should be visible');
+
+		// Restart on any key or pointer down
+		this.input.keyboard.once('keydown', () => this.scene.restart());
+		this.input.once('pointerdown', () => this.scene.restart());
+	}
+
 	handlePlayerHit() {
 		this.lives--;
 		this.updateBars();
@@ -464,7 +499,10 @@ class MainScene extends Phaser.Scene {
 		this.shieldOverlay.setVisible(false);
 		this.sfx.death.play();
 		this.gameOverScreen.setVisible(true);
-		this.time.delayedCall(3000, () => this.scene.restart());
+		
+		// Restart on any key or pointer down
+		this.input.keyboard.once('keydown', () => this.scene.restart());
+		this.input.once('pointerdown', () => this.scene.restart());
 	}
 }
 
