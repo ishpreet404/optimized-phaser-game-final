@@ -256,17 +256,7 @@ class MainScene extends Phaser.Scene {
 			.setScale(0.6)
 			.setInteractive()
 			.setVisible(true);
-		// Inside MainScene.create(), in your startScreen pointerup for best compatibility:
-		this.startScreen.on("pointerup", () => {
-			requestFullscreenFix();
-			this.sfx.click.play();
-			this.startScreen.setVisible(false);
-			this.physics.resume();
-			this.gameStarted = true;
-		});
-		// Also support desktop click for accessibility
-		this.startScreen.on("click", () => {
-			requestFullscreenFix();
+		this.startScreen.on("pointerdown", () => {
 			this.sfx.click.play();
 			this.startScreen.setVisible(false);
 			this.physics.resume();
@@ -593,36 +583,24 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-// Robust fullscreen request for mobile and desktop (pointerdown/touchstart)
-function requestFullscreenFix() {
-	const canvas = document.querySelector("canvas");
-	if (!canvas) return;
-
-	// Remove focus from any active element to ensure pointer events work after fullscreen
-	if (
-		document.activeElement &&
-		typeof document.activeElement.blur === "function"
-	) {
-		document.activeElement.blur();
-	}
-
-	// Try all major methods; ignore errors
-	if (canvas.requestFullscreen) {
-		canvas.requestFullscreen().catch(() => {});
-	} else if (canvas.webkitRequestFullscreen) {
-		canvas.webkitRequestFullscreen();
-	} else if (canvas.msRequestFullscreen) {
-		canvas.msRequestFullscreen();
-	}
-
-	// iOS: not real fullscreen, but scrolls away most nav
-	if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-		setTimeout(() => window.scrollTo(0, 1), 200);
-	}
-
-	// DO NOT force pointerEvents/touchAction on canvas or UI elements after fullscreen!
-	// This breaks Phaser's internal input system and causes random input bugs.
-}
+// Request fullscreen on first pointer down (desktop and mobile, all browsers)
+window.addEventListener(
+	"pointerdown",
+	() => {
+		const canvas = document.querySelector("canvas");
+		if (!canvas) return;
+		if (canvas.requestFullscreen) {
+			canvas.requestFullscreen();
+		} else if (canvas.webkitRequestFullscreen) {
+			canvas.webkitRequestFullscreen();
+		} else if (canvas.msRequestFullscreen) {
+			canvas.msRequestFullscreen();
+		} else if (canvas.mozRequestFullScreen) {
+			canvas.mozRequestFullScreen();
+		}
+	},
+	{ once: true }
+);
 
 // Refresh page if phone is rotated to landscape or portrait
 window.addEventListener("orientationchange", () => {
