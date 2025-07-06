@@ -256,7 +256,17 @@ class MainScene extends Phaser.Scene {
 			.setScale(0.6)
 			.setInteractive()
 			.setVisible(true);
-		this.startScreen.on("pointerdown", () => {
+		// Inside MainScene.create(), in your startScreen pointerup for best compatibility:
+		this.startScreen.on("pointerup", () => {
+			requestFullscreenFix();
+			this.sfx.click.play();
+			this.startScreen.setVisible(false);
+			this.physics.resume();
+			this.gameStarted = true;
+		});
+		// Also support desktop click for accessibility
+		this.startScreen.on("click", () => {
+			requestFullscreenFix();
 			this.sfx.click.play();
 			this.startScreen.setVisible(false);
 			this.physics.resume();
@@ -587,39 +597,19 @@ const game = new Phaser.Game(config);
 function requestFullscreenFix() {
 	const canvas = document.querySelector("canvas");
 	if (!canvas) return;
-	// Try canvas fullscreen with promise handling
-	let fullscreenPromise = null;
+	// Try all major methods; ignore errors
 	if (canvas.requestFullscreen) {
-		fullscreenPromise = canvas.requestFullscreen();
+		canvas.requestFullscreen().catch(() => {});
 	} else if (canvas.webkitRequestFullscreen) {
-		fullscreenPromise = canvas.webkitRequestFullscreen();
+		canvas.webkitRequestFullscreen();
 	} else if (canvas.msRequestFullscreen) {
-		fullscreenPromise = canvas.msRequestFullscreen();
-	} else if (canvas.mozRequestFullScreen) {
-		fullscreenPromise = canvas.mozRequestFullScreen();
+		canvas.msRequestFullscreen();
 	}
-	if (fullscreenPromise && typeof fullscreenPromise.catch === "function") {
-		fullscreenPromise.catch((e) => {
-			// Most likely user gesture or browser policy issue
-			console.warn("Fullscreen request denied:", e);
-		});
-	}
-	// For iOS Safari, also try the document.body
-	if (
-		typeof window !== "undefined" &&
-		/iPhone|iPad|iPod/.test(navigator.userAgent)
-	) {
-		if (document.body.webkitRequestFullscreen) {
-			try {
-				document.body.webkitRequestFullscreen();
-			} catch (e) {
-				/* ignore */
-			}
-		}
+	// iOS: not real fullscreen, but scrolls away most nav
+	if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+		setTimeout(() => window.scrollTo(0, 1), 200);
 	}
 }
-window.addEventListener("pointerdown", requestFullscreenFix, { once: true });
-window.addEventListener("touchstart", requestFullscreenFix, { once: true });
 
 // Refresh page if phone is rotated to landscape or portrait
 window.addEventListener("orientationchange", () => {
