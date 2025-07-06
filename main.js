@@ -597,6 +597,15 @@ const game = new Phaser.Game(config);
 function requestFullscreenFix() {
 	const canvas = document.querySelector("canvas");
 	if (!canvas) return;
+
+	// Remove focus from any active element to ensure pointer events work after fullscreen
+	if (
+		document.activeElement &&
+		typeof document.activeElement.blur === "function"
+	) {
+		document.activeElement.blur();
+	}
+
 	// Try all major methods; ignore errors
 	if (canvas.requestFullscreen) {
 		canvas.requestFullscreen().catch(() => {});
@@ -605,10 +614,22 @@ function requestFullscreenFix() {
 	} else if (canvas.msRequestFullscreen) {
 		canvas.msRequestFullscreen();
 	}
+
 	// iOS: not real fullscreen, but scrolls away most nav
 	if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
 		setTimeout(() => window.scrollTo(0, 1), 200);
 	}
+
+	// On mobile, re-enable pointer events for all controls after fullscreen
+	setTimeout(() => {
+		const controls = document.querySelectorAll(
+			'canvas, button, [role="button"], .phaser-ui, .phaser-control'
+		);
+		controls.forEach((el) => {
+			el.style.touchAction = "auto";
+			el.style.pointerEvents = "auto";
+		});
+	}, 300);
 }
 
 // Refresh page if phone is rotated to landscape or portrait
