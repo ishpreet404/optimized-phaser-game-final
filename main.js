@@ -620,16 +620,8 @@ function requestFullscreenFix() {
 		setTimeout(() => window.scrollTo(0, 1), 200);
 	}
 
-	// On mobile, re-enable pointer events for all controls after fullscreen
-	setTimeout(() => {
-		const controls = document.querySelectorAll(
-			'canvas, button, [role="button"], .phaser-ui, .phaser-control'
-		);
-		controls.forEach((el) => {
-			el.style.touchAction = "auto";
-			el.style.pointerEvents = "auto";
-		});
-	}, 300);
+	// DO NOT force pointerEvents/touchAction on canvas or UI elements after fullscreen!
+	// This breaks Phaser's internal input system and causes random input bugs.
 }
 
 // Refresh page if phone is rotated to landscape or portrait
