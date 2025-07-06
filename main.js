@@ -583,24 +583,43 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-// Request fullscreen on first pointer down (desktop and mobile, all browsers)
-window.addEventListener(
-	"pointerdown",
-	() => {
-		const canvas = document.querySelector("canvas");
-		if (!canvas) return;
-		if (canvas.requestFullscreen) {
-			canvas.requestFullscreen();
-		} else if (canvas.webkitRequestFullscreen) {
-			canvas.webkitRequestFullscreen();
-		} else if (canvas.msRequestFullscreen) {
-			canvas.msRequestFullscreen();
-		} else if (canvas.mozRequestFullScreen) {
-			canvas.mozRequestFullScreen();
+// Robust fullscreen request for mobile and desktop (pointerdown/touchstart)
+function requestFullscreenFix() {
+	const canvas = document.querySelector("canvas");
+	if (!canvas) return;
+	// Try canvas fullscreen with promise handling
+	let fullscreenPromise = null;
+	if (canvas.requestFullscreen) {
+		fullscreenPromise = canvas.requestFullscreen();
+	} else if (canvas.webkitRequestFullscreen) {
+		fullscreenPromise = canvas.webkitRequestFullscreen();
+	} else if (canvas.msRequestFullscreen) {
+		fullscreenPromise = canvas.msRequestFullscreen();
+	} else if (canvas.mozRequestFullScreen) {
+		fullscreenPromise = canvas.mozRequestFullScreen();
+	}
+	if (fullscreenPromise && typeof fullscreenPromise.catch === "function") {
+		fullscreenPromise.catch((e) => {
+			// Most likely user gesture or browser policy issue
+			console.warn("Fullscreen request denied:", e);
+		});
+	}
+	// For iOS Safari, also try the document.body
+	if (
+		typeof window !== "undefined" &&
+		/iPhone|iPad|iPod/.test(navigator.userAgent)
+	) {
+		if (document.body.webkitRequestFullscreen) {
+			try {
+				document.body.webkitRequestFullscreen();
+			} catch (e) {
+				/* ignore */
+			}
 		}
-	},
-	{ once: true }
-);
+	}
+}
+window.addEventListener("pointerdown", requestFullscreenFix, { once: true });
+window.addEventListener("touchstart", requestFullscreenFix, { once: true });
 
 // Refresh page if phone is rotated to landscape or portrait
 window.addEventListener("orientationchange", () => {
