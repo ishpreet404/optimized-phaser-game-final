@@ -70,7 +70,13 @@ class MainScene extends Phaser.Scene {
 			.setBounds(0, 0, worldWidth, worldHeight)
 			.setBackgroundColor("#87CEEB");
 
-		this.add.image(0, 0, "background").setOrigin(0).setScrollFactor(0);
+		// Detect if on mobile
+		this.isMobile =
+			this.sys.game.device.os.android || this.sys.game.device.os.iOS;
+
+		if (!this.isMobile) {
+			this.add.image(0, 0, "background").setOrigin(0).setScrollFactor(0);
+		}
 
 		this.fallLimitY = 1900;
 		this.gameOver = false;
