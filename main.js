@@ -67,8 +67,7 @@ class MainScene extends Phaser.Scene {
 		const worldWidth = 4000,
 			worldHeight = 2000;
 		this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
-		this.cameras.main
-			.setBounds(0, 0, worldWidth, worldHeight);
+		this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
 
 		// Detect if on mobile
 		this.isMobile =
@@ -532,3 +531,9 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
+// Refresh page if phone is rotated to landscape or portrait
+window.addEventListener("orientationchange", () => {
+	// Always reload on orientation change
+	location.reload();
+});
