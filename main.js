@@ -6,6 +6,7 @@ class MainScene extends Phaser.Scene {
 	preload() {
 		// Images
 		this.load.image("background", "/asset/BGfull.png");
+		this.load.image("backgroundMobile", "/asset/background.jpg");
 		this.load.image("cloud", "/asset/Cloud1.png");
 		this.load.image("player", "/asset/Psyger-0.png");
 		this.load.image("sun", "/asset/Suhn.png");
@@ -67,14 +68,15 @@ class MainScene extends Phaser.Scene {
 			worldHeight = 2000;
 		this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
 		this.cameras.main
-			.setBounds(0, 0, worldWidth, worldHeight)
-			.setBackgroundColor("#87CEEB");
+			.setBounds(0, 0, worldWidth, worldHeight);
 
 		// Detect if on mobile
 		this.isMobile =
 			this.sys.game.device.os.android || this.sys.game.device.os.iOS;
 
-		if (!this.isMobile) {
+		if (this.isMobile) {
+			this.add.image(0, 0, "backgroundMobile").setOrigin(0).setScrollFactor(0);
+		} else {
 			this.add.image(0, 0, "background").setOrigin(0).setScrollFactor(0);
 		}
 
