@@ -532,6 +532,20 @@ const config = {
 
 const game = new Phaser.Game(config);
 
+// Request fullscreen on first pointer down
+window.addEventListener(
+	"pointerdown",
+	() => {
+		const canvas = document.querySelector("canvas");
+		if (canvas && canvas.requestFullscreen) {
+			canvas.requestFullscreen();
+		} else if (canvas && canvas.webkitRequestFullscreen) {
+			canvas.webkitRequestFullscreen();
+		}
+	},
+	{ once: true }
+);
+
 // Refresh page if phone is rotated to landscape or portrait
 window.addEventListener("orientationchange", () => {
 	// Always reload on orientation change
