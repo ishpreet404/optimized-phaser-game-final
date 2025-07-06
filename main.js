@@ -322,6 +322,11 @@ class MainScene extends Phaser.Scene {
 			.setInteractive({ draggable: true });
 		this.joystickVector = { x: 0, y: 0 };
 
+		// Enable multitouch for mobile
+		if (this.sys.game.device.input.touch) {
+			this.input.addPointer(2); // Allow 2+ simultaneous touches
+		}
+
 		this.joystickKnob.on("drag", (pointer, dragX, dragY) => {
 			const dx = dragX - joyBaseX,
 				dy = dragY - joyBaseY;
