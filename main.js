@@ -309,102 +309,148 @@ class MainScene extends Phaser.Scene {
 		this.uiCamera = this.cameras.add(0, 0, 1920, 1080);
 		this.uiCamera.setScroll(0, 0);
 
-		const margin = 50;
-		const btnSize = 100;
+		// Joystick base and knob (black/white style)
+		const joyBaseX = 180,
+			joyBaseY = 900,
+			joyRadius = 80;
+		this.joystickBase = this.add
+			.circle(joyBaseX, joyBaseY, joyRadius, 0x111111, 0.7)
+			.setStrokeStyle(6, 0xffffff, 0.9);
+		this.joystickKnob = this.add
+			.circle(joyBaseX, joyBaseY, 38, 0xffffff, 0.98)
+			.setStrokeStyle(4, 0x111111, 1)
+			.setInteractive({ draggable: true });
+		this.joystickVector = { x: 0, y: 0 };
 
-		// Left movement controls
-		this.leftBtn = this.add
-			.text(margin, 1080 - margin, "←", {
-				fontSize: "48px",
-				backgroundColor: "#000000aa",
-				color: "#ffffff",
-				padding: { x: 20, y: 10 },
-				fixedWidth: btnSize,
-				fixedHeight: btnSize,
-				align: "center",
+		this.joystickKnob.on("drag", (pointer, dragX, dragY) => {
+			const dx = dragX - joyBaseX,
+				dy = dragY - joyBaseY;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			if (dist > joyRadius) {
+				const angle = Math.atan2(dy, dx);
+				this.joystickKnob.x = joyBaseX + Math.cos(angle) * joyRadius;
+				this.joystickKnob.y = joyBaseY + Math.sin(angle) * joyRadius;
+			} else {
+				this.joystickKnob.x = dragX;
+				this.joystickKnob.y = dragY;
+			}
+			this.joystickVector.x = (this.joystickKnob.x - joyBaseX) / joyRadius;
+			this.joystickVector.y = (this.joystickKnob.y - joyBaseY) / joyRadius;
+		});
+		this.joystickKnob.on("dragend", () => {
+			this.tweens.add({
+				targets: this.joystickKnob,
+				x: joyBaseX,
+				y: joyBaseY,
+				duration: 120,
+				ease: "Back.easeOut",
+			});
+			this.joystickVector.x = 0;
+			this.joystickVector.y = 0;
+		});
+
+		// --- Black & White Mobile Controls ---
+		// All controls (joystick, jump, shield) will use only black, white, and gray
+		// Both jump and shield buttons will be the same size
+		const btnX1 = 1720,
+			btnX2 = 1550,
+			btnY = 900,
+			btnR = 65;
+		// Jump Button
+		this.jumpBtn = this.add.graphics();
+		this.jumpBtn.fillStyle(0x111111, 0.32).fillCircle(6, 12, btnR + 4); // shadow
+		this.jumpBtn.fillStyle(0xffffff, 1).fillCircle(0, 0, btnR * 0.82);
+		this.jumpBtn.fillStyle(0xdddddd, 1).fillCircle(0, 0, btnR * 0.97);
+		this.jumpBtn.fillStyle(0x222222, 1).fillCircle(0, 0, btnR * 0.7);
+		this.jumpBtn
+			.fillStyle(0xffffff, 0.18)
+			.fillEllipse(0, -btnR * 0.45, btnR * 1.1, btnR * 0.45);
+		this.jumpBtn.lineStyle(6, 0x000000, 1).strokeCircle(0, 0, btnR);
+		this.jumpBtn.setPosition(btnX1, btnY);
+		this.jumpBtn.setInteractive(
+			new Phaser.Geom.Circle(0, 0, btnR),
+			Phaser.Geom.Circle.Contains
+		);
+		this.jumpIcon = this.add
+			.text(btnX1, btnY, "⭮", {
+				fontSize: "60px",
+				color: "#111",
+				fontStyle: "bold",
+				fontFamily: "Arial Black, Arial, sans-serif",
+				stroke: "#fff",
+				strokeThickness: 6,
 			})
-			.setOrigin(0, 1)
-			.setInteractive();
+			.setOrigin(0.5)
+			.setShadow(0, 6, "#000", 12, true, true);
 
-		this.rightBtn = this.add
-			.text(margin + btnSize + 20, 1080 - margin, "→", {
-				fontSize: "48px",
-				backgroundColor: "#000000aa",
-				color: "#ffffff",
-				padding: { x: 20, y: 10 },
-				fixedWidth: btnSize,
-				fixedHeight: btnSize,
-				align: "center",
+		// Shield Button (same size, black/white)
+		this.shieldBtn = this.add.graphics();
+		this.shieldBtn.fillStyle(0x111111, 0.32).fillCircle(6, 12, btnR + 4); // shadow
+		this.shieldBtn.fillStyle(0xffffff, 1).fillCircle(0, 0, btnR * 0.82);
+		this.shieldBtn.fillStyle(0xdddddd, 1).fillCircle(0, 0, btnR * 0.97);
+		this.shieldBtn.fillStyle(0x222222, 1).fillCircle(0, 0, btnR * 0.7);
+		this.shieldBtn
+			.fillStyle(0xffffff, 0.18)
+			.fillEllipse(0, -btnR * 0.45, btnR * 1.1, btnR * 0.45);
+		this.shieldBtn.lineStyle(6, 0x000000, 1).strokeCircle(0, 0, btnR);
+		this.shieldBtn.setPosition(btnX2, btnY);
+		this.shieldBtn.setInteractive(
+			new Phaser.Geom.Circle(0, 0, btnR),
+			Phaser.Geom.Circle.Contains
+		);
+		this.shieldIcon = this.add
+			.text(btnX2, btnY, "🛡️", {
+				fontSize: "60px",
+				color: "#111",
+				fontStyle: "bold",
+				fontFamily: "Arial Black, Arial, sans-serif",
+				stroke: "#fff",
+				strokeThickness: 6,
 			})
-			.setOrigin(0, 1)
-			.setInteractive();
+			.setOrigin(0.5)
+			.setShadow(0, 6, "#000", 12, true, true);
 
-		// Right side controls
-		this.jumpBtn = this.add
-			.text(1920 - margin, 1080 - margin, "JUMP", {
-				fontSize: "32px",
-				backgroundColor: "#000000aa",
-				color: "#ffffff",
-				padding: { x: 20, y: 10 },
-				fixedWidth: 120,
-				fixedHeight: 80,
-				align: "center",
-			})
-			.setOrigin(1, 1)
-			.setInteractive();
-
-		this.shieldBtn = this.add
-			.text(1920 - margin - 140, 1080 - margin, "SHIELD", {
-				fontSize: "28px",
-				backgroundColor: "#000000aa",
-				color: "#ffffff",
-				padding: { x: 15, y: 10 },
-				fixedWidth: 120,
-				fixedHeight: 80,
-				align: "center",
-			})
-			.setOrigin(1, 1)
-			.setInteractive();
-
-		// Make sure UI camera only sees these buttons
+		// UI camera ignores everything else
 		this.cameras.main.ignore([
-			this.leftBtn,
-			this.rightBtn,
+			this.joystickBase,
+			this.joystickKnob,
 			this.jumpBtn,
+			this.jumpIcon,
 			this.shieldBtn,
+			this.shieldIcon,
 		]);
 		this.uiCamera.ignore(
 			this.children.list.filter(
 				(child) =>
-					child !== this.leftBtn &&
-					child !== this.rightBtn &&
-					child !== this.jumpBtn &&
-					child !== this.shieldBtn
+					![
+						this.joystickBase,
+						this.joystickKnob,
+						this.jumpBtn,
+						this.jumpIcon,
+						this.shieldBtn,
+						this.shieldIcon,
+					].includes(child)
 			)
 		);
 
 		// Button events
-		this.leftPressed = false;
-		this.rightPressed = false;
-
-		this.leftBtn.on("pointerdown", () => (this.leftPressed = true));
-		this.leftBtn.on("pointerup", () => (this.leftPressed = false));
-		this.leftBtn.on("pointerout", () => (this.leftPressed = false));
-
-		this.rightBtn.on("pointerdown", () => (this.rightPressed = true));
-		this.rightBtn.on("pointerup", () => (this.rightPressed = false));
-		this.rightBtn.on("pointerout", () => (this.rightPressed = false));
-
-		this.jumpBtn.on("pointerdown", () => {
-			if (this.player.body.touching.down) {
-				this.player.setVelocityY(-700);
-				this.sfx.jump.play();
-			}
-		});
-
-		// Track shield button hold state
+		this.jumpBtn
+			.setInteractive(
+				new Phaser.Geom.Circle(0, 0, 65),
+				Phaser.Geom.Circle.Contains
+			)
+			.on("pointerdown", () => {
+				if (this.player.body.touching.down) {
+					this.player.setVelocityY(-700);
+					this.sfx.jump.play();
+				}
+			});
 		this.shieldBtnPressed = false;
 		this.shieldBtn
+			.setInteractive(
+				new Phaser.Geom.Circle(0, 0, 55),
+				Phaser.Geom.Circle.Contains
+			)
 			.on("pointerdown", () => (this.shieldBtnPressed = true))
 			.on("pointerup", () => (this.shieldBtnPressed = false))
 			.on("pointerout", () => (this.shieldBtnPressed = false));
@@ -435,16 +481,16 @@ class MainScene extends Phaser.Scene {
 
 		if (!this.shieldActive) {
 			let moveX = 0;
-			if (this.cursors.left.isDown || this.wasd.left.isDown || this.leftPressed)
+			// Joystick input (mobile)
+			if (this.joystickVector && Math.abs(this.joystickVector.x) > 0.15) {
+				moveX = this.joystickVector.x * speed;
+			} else if (this.cursors.left.isDown || this.wasd.left.isDown) {
 				moveX = -speed;
-			else if (
-				this.cursors.right.isDown ||
-				this.wasd.right.isDown ||
-				this.rightPressed
-			)
+			} else if (this.cursors.right.isDown || this.wasd.right.isDown) {
 				moveX = speed;
+			}
 			this.player.setVelocityX(moveX);
-
+			// Keyboard jump (desktop)
 			if (
 				(this.cursors.up.isDown || this.wasd.up.isDown) &&
 				this.player.body.touching.down
@@ -532,15 +578,20 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-// Request fullscreen on first pointer down
+// Request fullscreen on first pointer down (desktop and mobile, all browsers)
 window.addEventListener(
 	"pointerdown",
 	() => {
 		const canvas = document.querySelector("canvas");
-		if (canvas && canvas.requestFullscreen) {
+		if (!canvas) return;
+		if (canvas.requestFullscreen) {
 			canvas.requestFullscreen();
-		} else if (canvas && canvas.webkitRequestFullscreen) {
+		} else if (canvas.webkitRequestFullscreen) {
 			canvas.webkitRequestFullscreen();
+		} else if (canvas.msRequestFullscreen) {
+			canvas.msRequestFullscreen();
+		} else if (canvas.mozRequestFullScreen) {
+			canvas.mozRequestFullScreen();
 		}
 	},
 	{ once: true }
